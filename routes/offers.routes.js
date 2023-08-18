@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const multer = require('multer');
+const offerController = require('../controllers/offers.controller');
 
 // Set up storage configuration for Multer
 const storage = multer.diskStorage({
@@ -15,23 +16,8 @@ const storage = multer.diskStorage({
 // Create a Multer instance with the storage configuration
 const upload = multer({ storage: storage });
 
-router.post('/create', upload.single('file'), (req, res) => {
-  const file = req.file.filename;
+router.post('/create', upload.single('file'), offerController.create);
   
-
-    const {title, price,features, about, location } = req.body;
-  
-    const query = 'INSERT INTO offer (title, price, pictures,features, about, location) VALUES (?, ?, ?, ?, ?, ?)';
-    
-    db.query(query, [title, price, file,features, about, location], (err, result) => {
-      console.log(shfh);
-      if (err) {
-        res.status(500).json({ error: err.message });
-      } else {
-        res.json({ message: 'Record created successfully' });
-      }
-    });
-  });
   
   
 module.exports = router;

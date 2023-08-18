@@ -3,7 +3,7 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 require('dotenv').config({ path: "./sample.env" });
-
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const bodyParser = require('body-parser')
 app.use(
@@ -11,13 +11,13 @@ app.use(
       extended: true
     })
   );
-  
+  app.use(cookieParser());
   app.use(bodyParser.json()); // to support JSON-encoded bodies
   
 // Requiring Routes
 
 const UsersRoutes = require('./routes/users.routes');
-const vendorsRoutes = require('./routes/vendors.routes');       
+     
 const offersRoutes = require('./routes/offers.routes'); 
 // connection to mysql
 
@@ -43,7 +43,7 @@ app.use(cors());
 
 // Routes which should handle requests
 app.use("/users",UsersRoutes);
-app.use("/vendors",vendorsRoutes);
+
 app.use("/offers",offersRoutes);
 
 server.listen(app.get('port'));
