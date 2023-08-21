@@ -70,8 +70,8 @@ userController.signin = async (req, res) => {
                   
       
               const token = jsonwebtoken.sign({
-                 data: result,
-                 role: 'User'
+                 id: result.id,
+                 role: result.role
               }, process.env.JWT_KEY, { expiresIn: '7d' });
               
               res.send({ message: 'Successfully Logged in', token: token });

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const multer = require('multer');
-const offerController = require('../controllers/offers.controller');
+const offerController = require('../controllers/offerController');
 
 // Set up storage configuration for Multer
 const storage = multer.diskStorage({
@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 // Create a Multer instance with the storage configuration
 const upload = multer({ storage: storage });
 
-router.post('/create', upload.single('file'), offerController.create);
+router.post('/create', upload.array('files',5), offerController.create);
   
   
   
