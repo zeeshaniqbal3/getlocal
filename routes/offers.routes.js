@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require('multer');
 const offerController = require('../controllers/offerController');
+const { verifyvendor } = require("../middleware/authenticate");
 
 // Set up storage configuration for Multer
 const storage = multer.diskStorage({
@@ -18,6 +19,8 @@ const upload = multer({ storage: storage });
 
 router.post('/create', upload.array('files',5), offerController.create);
   
-  
-  
+router.get('/read', offerController.getAll);
+router.get('/search', offerController.search); 
+router.post('/update',verifyvendor, offerController.update); 
+router.delete('/deleteoffer/:id',verifyvendor, offerController.delete); 
 module.exports = router;

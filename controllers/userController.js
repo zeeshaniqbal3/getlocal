@@ -1,8 +1,9 @@
 const userController = {};
-const db = require('../config/db');
+const db = require('../db/connection');
 const bcrypt = require('bcryptjs');
 const jsonwebtoken =  require('jsonwebtoken');
-
+const { generateJWT ,generateRandomCode } = require('../utils/helpers');
+const { switchrole } = require('../middleware/authenticate');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
@@ -11,7 +12,10 @@ const generateToken = () => crypto.randomBytes(20).toString('hex');
 
 // Create a nodemailer transporter (configure your email provider)
 const transporter = nodemailer.createTransport({
-  service: 'Gmail',
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  requireTLS: true,
   auth: {
     user: process.env.email,
     pass: process.env.gpass,
@@ -54,38 +58,37 @@ userController.signup = async (req, res) => {
 userController.signin = async (req, res) => {
     const { email, password } = req.body;
     
-    const query = 'SELECT * FROM User WHERE email = ? ';
-    db.query(query, [ email, password], (err, result) => {
-        if (!result) {
-            // this means result is null
+    const query = 'SELECT * FROM user WHERE email = ? ';
+    const result=db.query(query, [ email]);
+        if (result) {
+          const matchpassword= bcrypt.compare(password, result.password)
+          if (matchpassword) {
+            const token = generateJWT(result.id, result.role);
+           res.send({ message: 'Successfully Logged in', token: token , id:token.role});
+
+           console.log(token,'uuuuuuuuuuuuuuuuuuuuu')
+         } 
+         
+         else {
+           console.log('password doesnot match');
+   
+           res.status(401).send({ message: 'Wrong email or Password' });
+           
+
+          }
+         } else {
             res.status(401).send({
               Error: 'This user doesnot exists. Please signup first'
-            });
-          } else {
-            // email did exist
-            // so lets match password
-             console.log(result);
-            if ( bcrypt.compare(password, result.password)) {
+            
+            
+           
               // great, allow this user access
                   
       
-              const token = jsonwebtoken.sign({
-                 id: result.id,
-                 role: result.role
-              }, process.env.JWT_KEY, { expiresIn: '7d' });
-              
-              res.send({ message: 'Successfully Logged in', token: token });
-  
-              console.log(token,'uuuuuuuuuuuuuuuuuuuuu')
-            } 
-            
-            else {
-              console.log('password doesnot match');
-      
-              res.status(401).send({ message: 'Wrong email or Password' });
-            }
-          }
-  });
+           
+            });
+  }
+
 };
 
 
@@ -93,7 +96,7 @@ userController.updateprofile = async (req, res) => {
     try {
         const { name, email, password,role } = req.body;
         const profileId = req.params.id;
-        const query = 'UPDATE User SET name = ?, email = ?, password = ?,role=? WHERE id = ?';
+        const query = 'UPDATE user SET name = ?, email = ?, password = ?,role=? WHERE id = ?';
         db.query(query, [name, email, password,role, profileId], (err, result) => {
           if (err) {
             res.status(500).json({ error: err.message });
@@ -157,7 +160,7 @@ userController.resetpassword = async (req, res) => {
       const userId = rows[0].id;
 
       // Update user's password
-      db.query('UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?', [newPassword, userId], (updateErr, updateResult) => {
+      db.query('UPDATE user SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?', [newPassword, userId], (updateErr, updateResult) => {
         if (updateErr) {
           console.error('Database error:', updateErr);
           res.status(500).json({ message: 'An error occurred' });
@@ -168,4 +171,15 @@ userController.resetpassword = async (req, res) => {
     }
   });
 };
+userController.switchrole = async(req,res) =>{
+  const id= switchrole;
+ const result= db.query('SELECT * FROM user WHERE id=?',[id]);
+ if(result.role=="vendor"){
+  db.query('UPDATE user SET role = "user"')
+ }
+ else{
+  db.query('UPDATE user SET role = "vendor"')
+ }
+
+}
 module.exports = userController;

@@ -16,5 +16,6 @@ router.post('/update/:id', userController.updateprofile);
   // Forgot Password API route
 router.post('/forgot-password', userController.forgetpassword);
 //router.post('/reset-password', userController.resetpassword);
+router.get('/switchrole', userController.switchrole);
   
 module.exports = router;   
